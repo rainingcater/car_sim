@@ -1,0 +1,28 @@
+<launch>
+<group ns="ugv0">
+    <arg name="port_name" value="can0" />
+    <arg name="is_scout_mini" default="false" />
+    <arg name="is_omni_wheel" default="false" />
+    <arg name="simulated_robot" value="false" />
+    <arg name="model_xacro" default="$(find scout_description)/urdf/scout_v2.xacro" />
+    <arg name="odom_topic_name" default="odom0" />
+
+    <include file="$(find scout_base)/launch/scout_base_zph.launch">
+        <arg name="port_name" default="$(arg port_name)" />
+        <arg name="is_scout_mini" default="$(arg is_scout_mini)" />
+        <arg name="is_omni_wheel" default="$(arg is_omni_wheel)" />
+        <arg name="simulated_robot" default="$(arg simulated_robot)" />
+        <arg name="odom_topic_name" default="$(arg odom_topic_name)" />
+        <param name="port_name" value="$(arg port_name)"/>
+        <param name="base_frame" value="car0_base_link"/>
+        <param name="odom_frame" value="car_frame_ugv0"/>
+        <remap from="/cmd_vel"       to="/ugv0/cmd_vel"/>
+        <remap from="/scout_light_control"       to="/ugv0/scout_light_control"/>
+        <remap from="/scout_status"       to="scout_status"/>
+    </include>
+
+    <include file="$(find scout_description)/launch/description.launch">
+        <arg name="model_xacro" default="$(arg model_xacro)" />
+    </include>
+</group>
+</launch>

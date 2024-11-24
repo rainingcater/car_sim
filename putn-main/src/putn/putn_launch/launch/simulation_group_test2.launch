@@ -1,0 +1,28 @@
+<launch>
+    <arg name="scene" default="map1"/>
+    <arg name="camera_init_id0" value="car0_camera_init"/>
+    <arg name="aft_mapped_id0" value="car0_aft_mapped"/>
+    <arg name="base_link_id0" value="car0_base_link"/>
+
+
+    <arg name="camera_init_id1" value="car1_camera_init"/>
+    <arg name="aft_mapped_id1" value="car1_aft_mapped"/>
+    <arg name="base_link_id1" value="car1_base_link"/>
+
+
+    <arg name="robot_namespace0" default="ugv0/" />
+    <arg name="robot_namespace1" default="ugv1/" />
+    <!-- UGV0 -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="world1_to_world" args="0 0 0 0 0 0 /world //world" /> -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="world_to_world1" args="0 0 0 0 0 0 /world world" /> -->
+    <group ns="$(arg robot_namespace0)">
+  
+    
+    <node name="controller0" pkg="local_planner" type="controller.py" launch-prefix="gnome-terminal --title=controller -- bash -c"/>
+    
+    </group>
+    <!-- ///////////////////////////////////////////////////////////////////////////////////////////////// -->
+    <group ns="$(arg robot_namespace1)">
+
+    </group>
+</launch>

@@ -1,0 +1,157 @@
+<launch>
+    <arg name="scene" default="map1"/>
+    <arg name="camera_init_id0" value="car0_camera_init"/>
+    <arg name="aft_mapped_id0" value="car0_aft_mapped"/>
+    <arg name="base_link_id0" value="car0_base_link"/>
+
+
+    <arg name="camera_init_id1" value="car1_camera_init"/>
+    <arg name="aft_mapped_id1" value="car1_aft_mapped"/>
+    <arg name="base_link_id1" value="car1_base_link"/>
+
+    <include file="$(find putn_map)/launch/$(arg scene).launch"/>
+    <arg name="robot_namespace0" default="ugv0/" />
+    <arg name="robot_namespace1" default="ugv1/" />
+    <!-- UGV0 -->
+    <group ns="$(arg robot_namespace0)">
+    <param name="camera_init_id0" value="$(arg camera_init_id0)"/>
+    <param name="aft_mapped_id0" value="$(arg aft_mapped_id0)"/>
+    <param name="base_link_id0" value="$(arg aft_mapped_id0)"/>
+    <include file="$(find scout_gazebo_sim0)/launch/spawn_scout_v20.launch">
+      <arg name="x" value="2"/>
+      <arg name="y" value="2"/>
+      <arg name="z" value="1"/>
+    </include>
+
+    <include file="$(find aloam_velodyne)/launch/aloam_velodyne_HDL_32_car0.launch">
+      <arg name="rviz" value="false"/>
+      <!-- <arg name="camera_init_id" value="$(arg camera_init_id)"/>
+      <arg name="aft_mapped_id" value="$(arg aft_mapped_id)"/> -->
+    </include>
+
+    <node pkg="tf" type="static_transform_publisher" name="world_to_camera_init" args="0 0 0 0 0 0 /world /car0_camera_init 10" /><!--10ms-->
+    <node pkg="tf" type="static_transform_publisher" name="camera_to_link" args="0 0 -0.4 0 0 0 /car0_aft_mapped /car0_base_link 10" />
+
+    <node pkg="waypoint_generator" name="waypoint_generator0" type="waypoint_generator0">
+        <!-- <remap from="~goal" to="/goal"/> -->
+        <remap from="~goal" to="/goal_zph_ugv0"/>
+        <param name="waypoint_type" value="manual-lonely-waypoint"/>    
+    </node>
+
+    <node pkg="putn" type="global_planning_node0" name="global_planning_node0" output="screen" required = "true">
+        <param name="base_link_id" value="$(arg base_link_id0)"/>
+        <remap from="~waypoints"       to="waypoint_generator/waypoints"/>
+        <remap from="~map"             to="laser_cloud_map"/> 
+        <remap from="~path_vis"             to="ugv0_path_vis"/> 
+        <remap from="~grid_map_vis"             to="ugv0_grid_map_vis"/> 
+        <remap from="~goal_vis"             to="ugv0_goal_vis"/> 
+        <remap from="~surf_vis"             to="ugv0_surf_vis"/> 
+        <remap from="~tree_vis"             to="ugv0_tree_vis"/> 
+        <remap from="~tree_tra"             to="ugv0_tree_tra"/> 
+        <remap from="~global_path"             to="ugv0_global_path"/> 
+
+        <rosparam command="load" file="$(find putn)/config/for_simulation/$(arg scene).yaml"/>
+    </node>
+
+    <node pkg="putn" type="local_obs_node0" name="local_obs_node0" output="screen" required = "true">
+        <param name="camera_init_id" value="$(arg camera_init_id)"/>
+        <param name="aft_mapped_id" value="$(arg aft_mapped_id)"/>
+        <remap from="~map"             to="/velodyne_points_ugv0"/> 
+        <!-- <remap from="obs_vis"             to="obs_vis_ugv0"/> 
+        <remap from="obs"             to="obs_ugv0"/>  -->
+        <param name="map/resolution"      value="0.1" />
+        <param name="map/local_x_l"       value="-1.8"/>
+        <param name="map/local_x_u"       value="1.8"/>
+        <param name="map/local_y_l"       value="-1.8"/>
+        <param name="map/local_y_u"       value="1.8"/>
+        <param name="map/local_z_l"       value="-0.5"/>
+        <param name="map/local_z_u"       value="0.4"/>
+    </node>
+
+    <node pkg="gpr" type="gpr_path1" name="gpr_path0" output="screen" required="true">
+        <param name="file/cfg_path" type="string" value="$(find gpr)/config/hyperparam.txt"/>
+        <!-- <remap from="/global_planning_node/tree_tra" to="/global_planning_node0/ugv0_tree_tra"/>
+        <remap from="/global_planning_node/global_path" to="/global_planning_node0/ugv0_global_path"/>
+        <remap from="/surf_predict_pub" to="ugv0_surf_predict_pub"/> -->
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find putn_launch)/rviz_config/simulation.rviz" required="true"/>
+
+    <node name="local_planner0" pkg="local_planner" type="local_planner.py" launch-prefix="gnome-terminal --title=local_planner -x"/>
+    <node name="controller0" pkg="local_planner" type="controller.py" launch-prefix="gnome-terminal --title=controller -x"/>
+    <node name="state_machine0" pkg="local_planner" type="state_machine.py" launch-prefix="gnome-terminal --title=state_machine -x"/>
+        <remap from="/goal_zph" to="/goal_zph_ugv0"/>
+  
+    </group>
+    
+    <group ns="$(arg robot_namespace1)">
+    <param name="camera_init_id1" value="$(arg camera_init_id1)"/>
+    <param name="aft_mapped_id1" value="$(arg aft_mapped_id1)"/>
+    <param name="base_link_id1" value="car1_base_link"/>
+    <include file="$(find scout_gazebo_sim0)/launch/spawn_scout_v20.launch">
+      <arg name="x" value="10"/>
+      <arg name="y" value="10"/>
+      <arg name="z" value="1"/>
+    </include>
+
+    <include file="$(find aloam_velodyne)/launch/aloam_velodyne_HDL_32_car1.launch">
+      <arg name="rviz" value="false"/>
+      <!-- <arg name="camera_init_id" value="$(arg camera_init_id)"/>
+      <arg name="aft_mapped_id" value="$(arg aft_mapped_id)"/> -->
+    </include>
+
+    <node pkg="tf" type="static_transform_publisher" name="world_to_camera_init" args="0 0 0 0 0 0 /world /car1_camera_init 10" /><!--10ms-->
+    <node pkg="tf" type="static_transform_publisher" name="camera_to_link" args="0 0 -0.4 0 0 0 /car1_aft_mapped /car1_base_link 10" />
+
+    <node pkg="waypoint_generator" name="waypoint_generator1" type="waypoint_generator1">
+        <!-- <remap from="~goal" to="/goal"/> -->
+        <remap from="~goal" to="/goal_zph_ugv1"/>
+        <param name="waypoint_type" value="manual-lonely-waypoint"/>    
+    </node>
+
+    <node pkg="putn" type="global_planning_node1" name="global_planning_node1" output="screen" required = "true">
+        <param name="base_link_id" value="$(arg base_link_id)"/>
+        <remap from="~waypoints"       to="waypoint_generator/waypoints"/>
+        <remap from="~map"             to="laser_cloud_map"/> 
+        <!-- <remap from="~path_vis"             to="ugv0_path_vis"/> 
+        <remap from="~grid_map_vis"             to="ugv0_grid_map_vis"/> 
+        <remap from="~goal_vis"             to="ugv0_goal_vis"/> 
+        <remap from="~surf_vis"             to="ugv0_surf_vis"/> 
+        <remap from="~tree_vis"             to="ugv0_tree_vis"/> 
+        <remap from="~tree_tra"             to="ugv0_tree_tra"/> 
+        <remap from="~global_path"             to="ugv0_global_path"/>  -->
+
+        <rosparam command="load" file="$(find putn)/config/for_simulation/$(arg scene).yaml"/>
+    </node>
+
+    <node pkg="putn" type="local_obs_node1" name="local_obs_node1" output="screen" required = "true">
+        <param name="camera_init_id1" value="$(arg camera_init_id1)"/>
+        <param name="aft_mapped_id1" value="$(arg aft_mapped_id1)"/>
+        <remap from="~map"             to="/velodyne_points_ugv1"/> 
+        <!-- <remap from="obs_vis"             to="obs_vis_ugv0"/> 
+        <remap from="obs"             to="obs_ugv0"/>  -->
+        <param name="map/resolution"      value="0.1" />
+        <param name="map/local_x_l"       value="-1.8"/>
+        <param name="map/local_x_u"       value="1.8"/>
+        <param name="map/local_y_l"       value="-1.8"/>
+        <param name="map/local_y_u"       value="1.8"/>
+        <param name="map/local_z_l"       value="-0.5"/>
+        <param name="map/local_z_u"       value="0.4"/>
+    </node>
+
+    <node pkg="gpr" type="gpr_path0" name="gpr_path0" output="screen" required="true">
+        <param name="file/cfg_path" type="string" value="$(find gpr)/config/hyperparam.txt"/>
+        <remap from="/global_planning_node/tree_tra" to="/global_planning_node0/ugv0_tree_tra"/>
+        <remap from="/global_planning_node/global_path" to="/global_planning_node0/ugv0_global_path"/>
+        <remap from="/surf_predict_pub" to="ugv0_surf_predict_pub"/>
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find putn_launch)/rviz_config/simulation.rviz" required="true"/>
+
+    <node name="local_planner0" pkg="local_planner" type="local_planner.py" launch-prefix="gnome-terminal --title=local_planner -x"/>
+    <node name="controller0" pkg="local_planner" type="controller.py" launch-prefix="gnome-terminal --title=controller -x"/>
+    <node name="state_machine0" pkg="local_planner" type="state_machine.py" launch-prefix="gnome-terminal --title=state_machine -x"/>
+        <remap from="/goal_zph" to="/goal_zph_ugv0"/>
+  
+    </group>
+</launch>

@@ -1,0 +1,9 @@
+
+<launch>
+    <!-- <arg name="robot_namespace" default="car0/"> -->
+    <arg name="urdf_extras" default="$(find scout_description0)/car0_urdf/empty0.urdf"/>
+
+    <param name="robot_description" command="$(find xacro)/xacro '$(find scout_description0)/car0_urdf/scout_v20.xacro'
+        robot_namespace:='car0' 
+        urdf_extras:=$(arg urdf_extras)" />
+</launch>

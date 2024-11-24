@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+  <include file="$(find putn_map)/launch/start1.launch">
+    <arg name="world" value="$(find putn_map)/worlds/south.world"/>
+  </include>
+</launch>

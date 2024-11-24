@@ -1,0 +1,86 @@
+<launch>
+  <arg name="scene" default="map1"/>
+  <include file="$(find putn_map)/launch/$(arg scene).launch"/>
+  <!-- UGV0 -->
+  <!-- UGV0 -->
+  <group ns="ugv0">
+    <arg name="robot_namespace" default="car0/"/>
+    <arg name="urdf_extras" default="$(find scout_description0)/car0_urdf/empty0.urdf"/>
+    <!-- initial pose -->
+        <arg name="x" default="2.0"/>
+        <arg name="y" default="2.0"/>
+        <arg name="z" default="1.0"/>
+        <arg name="yaw" default="0.0"/>
+    <param name="robot_description" command="$(find xacro)/xacro '$(find scout_description0)/car0_urdf/scout_v20.xacro'
+        robot_namespace:=$(arg robot_namespace) 
+        urdf_extras:=$(arg urdf_extras)" />
+
+    <node name="spawn_scout_model" pkg="gazebo_ros" type="spawn_model" args="-x $(arg x)
+        -y $(arg y)
+        -z $(arg z)
+        -Y $(arg yaw)
+        -unpause
+        -urdf
+        -param robot_description
+        -model 'scout$(arg robot_namespace)'" />
+    <!-- Load joint controller configurations from YAML file to parameter server -->
+        <rosparam file="$(find scout_gazebo_sim0)/config/scout_v2_control.yaml" command="load"/>
+                <!-- <rosparam command="load" file="$(find scout_control)/config/scout2_control.yaml"/>
+                -->
+        <!-- load the controllers -->
+        <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" 
+        args="scout_state_controller scout_motor_fr_controller scout_motor_fl_controller scout_motor_rl_controller scout_motor_rr_controller"/>
+    
+    <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" 
+        args="scout2_joint_publisher scout2_velocity_controller"/> -->
+
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+        <node name="scout_skid_steer_controller" pkg="scout_gazebo_sim" type="scout_skid_steer_controller">
+            <param name="robot_namespace" type="string" value="$(arg robot_namespace)" />
+        </node>
+
+    <include file="$(find aloam_velodyne)/launch/aloam_velodyne_HDL_32.launch">
+      <arg name="rviz" value="false"/>
+    </include>
+
+    <node pkg="tf" type="static_transform_publisher" name="world_to_camera_init" args="0 0 0 0 0 0 /world /camera_init 10" /><!--10ms-->
+    <node pkg="tf" type="static_transform_publisher" name="camera_to_link" args="0 0 -0.4 0 0 0 /aft_mapped /base_link 10" />
+
+    <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator">
+        <!-- <remap from="~goal" to="/goal"/> -->
+        <remap from="~goal" to="/goal_zph"/>
+        <param name="waypoint_type" value="manual-lonely-waypoint"/>    
+    </node>
+
+    <node pkg="putn" type="global_planning_node" name="global_planning_node" output="screen" required = "true">
+        <remap from="~waypoints"       to="/waypoint_generator/waypoints"/>
+        <remap from="~map"             to="/laser_cloud_map"/> 
+
+        <rosparam command="load" file="$(find putn)/config/for_simulation/$(arg scene).yaml"/>
+    </node>
+
+    <node pkg="putn" type="local_obs_node" name="local_obs_node" output="screen" required = "true">
+        <remap from="~map"             to="/velodyne_points"/> 
+
+        <param name="map/resolution"      value="0.1" />
+        <param name="map/local_x_l"       value="-1.8"/>
+        <param name="map/local_x_u"       value="1.8"/>
+        <param name="map/local_y_l"       value="-1.8"/>
+        <param name="map/local_y_u"       value="1.8"/>
+        <param name="map/local_z_l"       value="-0.5"/>
+        <param name="map/local_z_u"       value="0.4"/>
+    </node>
+
+    <node pkg="gpr" type="gpr_path" name="gpr_path" output="screen" required="true">
+        <param name="file/cfg_path" type="string" value="$(find gpr)/config/hyperparam.txt"/>
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find putn_launch)/rviz_config/simulation.rviz" required="true"/>
+
+    <node name="local_planner" pkg="local_planner" type="local_planner.py" launch-prefix="gnome-terminal --title=local_planner -x"/>
+    <node name="controller" pkg="local_planner" type="controller.py" launch-prefix="gnome-terminal --title=controller -x"/>
+    <node name="state_machine" pkg="local_planner" type="state_machine.py" launch-prefix="gnome-terminal --title=state_machine -x"/>
+  </group>
+  
+</launch>
