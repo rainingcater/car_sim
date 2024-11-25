@@ -32,7 +32,6 @@ class Local_Planner():
         self.ob=[]
         self.is_end=0
         self.ob_total = []
-        self.obt = []
         # self.__timer_replan = rospy.Timer(rospy.Duration(self.replan_period), self.__replan_cb)
         self.__timer_replan = rospy.Timer(rospy.Duration(self.replan_period), self.__replan_cb_no_crash)
         self.__sub_curr_state = rospy.Subscriber('curr_state', Float32MultiArray, self.__curr_pose_cb, queue_size=10)
@@ -90,27 +89,15 @@ class Local_Planner():
             phi += data.angle_increment
         self.draw_ob()
 
-    # def __obs_cb(self, data):
-    #     self.ob = []
-    #     if(len(data.data)!=0):
-
-    #         size = int(len(data.data)/3)
-    #         for i in range(size):
-    #             self.ob.append(( (data.data[3*i]//0.3)*0.3, (data.data[3*i+1]//0.3)*0.3) )
-    #         dic = list(set([tuple(t) for t in self.ob]))
-    #         self.ob = [list(v) for v in dic]
-    #         self.draw_ob()
-
     def __obs_cb(self, data):
-        self.obt = []
+        self.ob = []
         if(len(data.data)!=0):
 
-            size = int(len(data.data)/3)
+            size = len(data.data)/3
             for i in range(size):
-                self.obt.append(( (data.data[3*i]//0.3)*0.3, (data.data[3*i+1]//0.3)*0.3) )
-            dic = list(set([tuple(t) for t in self.obt]))
-            self.obt = [list(v) for v in dic]
-            self.ob=self.obt
+                self.ob.append(( (data.data[3*i]//0.3)*0.3, (data.data[3*i+1]//0.3)*0.3) )
+            dic = list(set([tuple(t) for t in self.ob]))
+            self.ob = [list(v) for v in dic]
             self.draw_ob()
 
     def __replan_cb(self, event):
@@ -166,6 +153,7 @@ class Local_Planner():
         elif self.robot_state_set==False and self.ref_path_set==True:
             print("no pose")
         elif self.robot_state_set==True and self.ref_path_set==False:
+            # PRINT()
             print("no path")
         else:
             print("no path and no pose")
@@ -239,7 +227,7 @@ class Local_Planner():
                     break
                 for obstacle in obstacles:
 
-                    if np.linalg.norm(np.array(point[0:2])-np.array(obstacle[0:2]))<=0.6:
+                    if np.linalg.norm(np.array(point[0:2])-np.array(obstacle[0:2]))<=1:
                         is_crash=True
             if not is_crash:
                 self.no_obs_traj.append(trajectory)
@@ -254,7 +242,7 @@ class Local_Planner():
         current_position = np.array(trajectory[0][:2])
 
         # direction_vector = np.array(trajectory[-1][:2]) - current_position0000000000000000000000000000000000000000000000000000000000000
-        angles = [0,20,-20, 40, -40,60,-60,-80, 80,-100,100,-120,120,-140,140]
+        angles = [0,20,-20, 40, -40,60,-60,-80, 80]
         rotated_trajectories = []
 
  
@@ -356,7 +344,7 @@ class Local_Planner():
             print('set2')
             self.ref_path_set = True
             size = int(len(data.data)/5)
-            self.desired_global_path[1]=size
+            self.desired_global_path[1]=int(size)
             for i in range(size):
                 self.desired_global_path[0][i,0]=data.data[5*(size-i)-5]
                 self.desired_global_path[0][i,1]=data.data[5*(size-i)-4]

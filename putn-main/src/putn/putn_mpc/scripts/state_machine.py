@@ -13,9 +13,8 @@ from  local_planner.msg import BlueModeDef
 from  local_planner.msg import RedModeDef
 from  local_planner.msg import RedMode
 
-model_index=0
-uav1_health_value = 100
-uav2_health_value = 100
+model_index=11
+
  
 def euler2quaternion(euler):
     r = R.from_euler('xyz', euler, degrees=True)
@@ -47,16 +46,6 @@ def readkey(getchar_fn=None):
 # def ugv0_state_callback(data):
 #     # rospy.loginfo("Received Pose: %s", data)
 #     return data
-def health_callback_uav1(data):
-    global uav1_health_value
-    uav1_health_value = data.temperature  # 假设温度消息包含健康值
-    # rospy.loginfo(f"UAV1 Health Value: {uav1_health_value}")
-
-def health_callback_uav2(data):
-    global uav2_health_value
-    uav2_health_value = data.temperature  # 假设温度消息包含健康值
-    # rospy.loginfo(f"UAV2 Health Value: {uav2_health_value}")
-
 
 
 def send_goal():
@@ -76,8 +65,8 @@ def send_goal():
     global model_index
     if model_index==11:#hold
         print('HOLD')
-        goal.pose.position.x =5
-        goal.pose.position.y =16
+        goal.pose.position.x =0
+        goal.pose.position.y =15
     if model_index==12:#BLUE_PURSUIT
         print('BGLUPERSULT')
         goal.pose.position.x =blue_uav2_pose. pose.position.x
@@ -86,8 +75,8 @@ def send_goal():
         print(goal.pose.position.y)
     if model_index==13:# LURE_DEEP
         print('luredeep')
-        goal.pose.position.x =5
-        goal.pose.position.y = 19
+        goal.pose.position.x =0
+        goal.pose.position.y = 10
     if model_index==0:#hold
         print('READY')
         goal.pose.position.x =0#ugv0_state_x
@@ -199,10 +188,8 @@ if __name__ == '__main__':
         rospy.Subscriber('/blue/uav2/state_in_map/pose', PoseStamped, blue_uav2_pose_callback)
         rospy.Subscriber('/red/uav1/state_in_map/pose', PoseStamped, red_uav1_pose_callback)
         rospy.Subscriber('/red/uav2/state_in_map/pose', PoseStamped,  red_uav2_pose_callback)
-
-        # rospy.Subscriber('/blue/uav1/health_value', Temperature, health_callback)
-        # rospy.Subscriber('/blue/uav2/health_value', Temperature, health_callback)
-
+        # rospy.Subscriber('/blue/ugv1/health_value', Temperature, health_callback)
+        # rospy.Subscriber('/red/uav2/health_value', Temperature, health_callback)
         rospy.Subscriber('/blue/mode', BlueMode, state_machine_callback)
         while not rospy.is_shutdown():
 

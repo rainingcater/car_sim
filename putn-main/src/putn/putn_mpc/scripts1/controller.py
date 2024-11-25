@@ -58,8 +58,8 @@ class Controller():
         return r, p, y
     def odo_callback(self,msg):
 
-        self.curr_state[0] = msg.pose.pose.position.x+1
-        self.curr_state[1] = msg.pose.pose.position.y+14
+        self.curr_state[0] = msg.pose.pose.position.x+4
+        self.curr_state[1] = msg.pose.pose.position.y+14#zph
         self.curr_state[2] = -1#msg.pose.pose.position.z-1
         self.cur_roll, self.cur_pitch, self.curr_state[3] = self.quart_to_rpy(
            msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)  # r,p,y
@@ -70,46 +70,46 @@ class Controller():
         # print(c)
         # self.pub2.publish(c)
 
-    def get_current_state(self, event):
-        # print('*************12')
-        print(rospy.Time.now() )
-        self.listener = tf.TransformListener()  
-        # print(self.listener )
-        # try:
-        self.listener.waitForTransform(
-        'world', 'car1_base_link', rospy.Time(0),rospy.Duration(8))
-        # (trans, rot) = self.listener.lookupTransform(
-        #     'world', 'car0_base_link', rospy.Time(0))
-     
-        # (trans, rot) = self.listener.lookupTransform(
-        # 'world', 'car0_base_link', rospy.Time(0),rospy.Duration(1.0))
+    # def get_current_state(self, event):
+    #     # print('*************12')
+    #     print(rospy.Time.now() )
+    #     self.listener = tf.TransformListener()  
+    #     # print(self.listener )
+    #     try:
+    #         self.listener.waitForTransform(
+    #         'world', 'car0_base_link', rospy.Time(0),rospy.Duration(8))
+    #         # (trans, rot) = self.listener.lookupTransform(
+    #         #     'world', 'car0_base_link', rospy.Time(0))
+        
+    #         # (trans, rot) = self.listener.lookupTransform(
+    #         # 'world', 'car0_base_link', rospy.Time(0),rospy.Duration(1.0))
 
-        (trans, rot) = self.listener.lookupTransform(
-        'world', 'car1_base_link', rospy.Time(0))
+    #         (trans, rot) = self.listener.lookupTransform(
+    #         'world', 'car0_base_link', rospy.Time(0))
           
         
 
-        print(trans)
-        self.curr_state[0] = trans[0]
-        self.curr_state[1] = trans[1]
-        self.curr_state[2] = trans[2]
-        roll, pitch, self.curr_state[3] = self.quart_to_rpy(
-            rot[0], rot[1], rot[2], rot[3])  # r,p,y
-        c = Float32MultiArray()
-        c.data = [self.curr_state[0], self.curr_state[1], self.curr_state[2],
-                    (self.curr_state[3]+np.pi) % (2*np.pi)-np.pi, roll, pitch]
-        # print('0sdnakdnk*************12')
-        # print(c)
-        self.pub2.publish(c)
-        # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        #     pass
-    # def get_current_state(self, event):
+    #     # print(trans)
+    #     self.curr_state[0] = trans[0]
+    #     self.curr_state[1] = trans[1]
+    #     self.curr_state[2] = trans[2]
+    #     roll, pitch, self.curr_state[3] = self.quart_to_rpy(
+    #         rot[0], rot[1], rot[2], rot[3])  # r,p,y
     #     c = Float32MultiArray()
     #     c.data = [self.curr_state[0], self.curr_state[1], self.curr_state[2],
-    #                 (self.curr_state[3]+np.pi) % (2*np.pi)-np.pi,self.cur_roll ,self.cur_pitch]
+    #                 (self.curr_state[3]+np.pi) % (2*np.pi)-np.pi, roll, pitch]
+    #     # print('0sdnakdnk*************12')
     #     # print(c)
-    #     # print("/n")
     #     self.pub2.publish(c)
+    #     # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+    #     #     pass
+    def get_current_state(self, event):
+        c = Float32MultiArray()
+        c.data = [self.curr_state[0], self.curr_state[1], self.curr_state[2],
+                    (self.curr_state[3]+np.pi) % (2*np.pi)-np.pi,self.cur_roll ,self.cur_pitch]
+        # print(c)
+        # print("/n")
+        self.pub2.publish(c)
 
 
     def cmd(self, data):

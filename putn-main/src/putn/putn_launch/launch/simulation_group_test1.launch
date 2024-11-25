@@ -9,7 +9,7 @@
     <arg name="aft_mapped_id1" value="car1_aft_mapped"/>
     <arg name="base_link_id1" value="car1_base_link"/>
 
-    <include file="$(find putn_map)/launch/$(arg scene).launch"/>
+
     <arg name="robot_namespace0" default="ugv0/" />
     <arg name="robot_namespace1" default="ugv1/" />
     <!-- UGV0 -->
@@ -60,8 +60,8 @@
         <param name="camera_init_id" value="$(arg camera_init_id0)"/>
         <param name="aft_mapped_id" value="$(arg aft_mapped_id0)"/>
         <remap from="~map"             to="velodyne_points_ugv0"/> 
-        <remap from="~obs_vis"             to="obs_vis"/> 
-        <remap from="/obs"             to="obs"/> 
+        <!-- <remap from="~obs_vis"             to="obs_vis"/> 
+        <remap from="/obs"             to="obs"/>  -->
         <param name="map/resolution"      value="0.1" />
         <param name="map/local_x_l"       value="-1.8"/>
         <param name="map/local_x_u"       value="1.8"/>
@@ -131,8 +131,8 @@
         <param name="camera_init_id" value="$(arg camera_init_id1)"/>
         <param name="aft_mapped_id" value="$(arg aft_mapped_id1)"/>
         <remap from="~map"             to="velodyne_points_ugv1"/> 
-        <remap from="~obs_vis"             to="obs_vis"/> 
-        <remap from="/obs"             to="obs"/> 
+        <!-- <remap from="~obs_vis"             to="obs_vis"/> 
+        <remap from="/obs"             to="obs"/>  -->
         <param name="map/resolution"      value="0.1" />
         <param name="map/local_x_l"       value="-1.8"/>
         <param name="map/local_x_u"       value="1.8"/>
